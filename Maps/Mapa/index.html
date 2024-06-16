@@ -39,11 +39,12 @@
         <script src="data/Preu_3.js"></script>
         <script>
         var map = L.map('map', {
-            zoomControl:true, maxZoom:28, minZoom:1
+            zoomControl:false, maxZoom:28, minZoom:1
         })
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
         function removeEmptyRowsFromPopupContent(content, feature) {
          var tempDiv = document.createElement('div');
          tempDiv.innerHTML = content;
@@ -57,15 +58,23 @@
          }
          return tempDiv.innerHTML;
         }
-        document.querySelector(".leaflet-popup-pane").addEventListener("load", function(event) {
-          var tagName = event.target.tagName,
-            popup = map._popup;
-          // Also check if flag is already set.
-          if (tagName === "IMG" && popup && !popup._updated) {
-            popup._updated = true; // Set flag to prevent looping.
-            popup.update();
-          }
-        }, true);
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
             if (bounds_group.getLayers().length) {
@@ -100,11 +109,11 @@
                         <td colspan="2">' + (feature.properties['AREAC5000'] !== null ? autolinker.link(feature.properties['AREAC5000'].toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
-            layer.bindPopup(popupContent, {maxHeight: 400});
-            var popup = layer.getPopup();
-            var content = popup.getContent();
-            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
-            popup.setContent(updatedContent);
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
         }
 
         function style_BaixEbre_1_0() {
@@ -142,11 +151,11 @@
                         <td colspan="2">' + (feature.properties['NOMMUNI'] !== null ? autolinker.link(feature.properties['NOMMUNI'].toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
-            layer.bindPopup(popupContent, {maxHeight: 400});
-            var popup = layer.getPopup();
-            var content = popup.getContent();
-            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
-            popup.setContent(updatedContent);
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
         }
 
         function style_MunicipisdelBaixEbre_2_0() {
@@ -204,15 +213,15 @@
                         <td>' + (feature.properties['EUR/KG'] !== null ? autolinker.link(feature.properties['EUR/KG'].toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
-            layer.bindPopup(popupContent, {maxHeight: 400});
-            var popup = layer.getPopup();
-            var content = popup.getContent();
-            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
-            popup.setContent(updatedContent);
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
         }
 
         function style_Preu_3_0(feature) {
-            if (feature.properties['EUR/KG'] >= 1.000000 && feature.properties['EUR/KG'] <= 1.900000 ) {
+            if (feature.properties['EUR/KG'] >= 0.310000 && feature.properties['EUR/KG'] <= 0.333333 ) {
                 return {
                 pane: 'pane_Preu_3',
                 shape: 'diamond',
@@ -229,24 +238,24 @@
                 interactive: true,
             }
             }
-            if (feature.properties['EUR/KG'] >= 1.900000 && feature.properties['EUR/KG'] <= 2.900000 ) {
+            if (feature.properties['EUR/KG'] >= 0.333333 && feature.properties['EUR/KG'] <= 0.356667 ) {
                 return {
                 pane: 'pane_Preu_3',
                 shape: 'diamond',
                 radius: 8.8,
                 opacity: 1,
-                color: 'rgba(220,206,104,1.0)',
+                color: 'rgba(255,233,65,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 2.0,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(255,233,65,1.0)',
+                fillColor: 'rgba(242,255,3,1.0)',
                 interactive: true,
             }
             }
-            if (feature.properties['EUR/KG'] >= 2.900000 && feature.properties['EUR/KG'] <= 4.000000 ) {
+            if (feature.properties['EUR/KG'] >= 0.356667 && feature.properties['EUR/KG'] <= 0.380000 ) {
                 return {
                 pane: 'pane_Preu_3',
                 shape: 'diamond',
@@ -286,7 +295,7 @@
         map.addLayer(layer_Preu_3);
         var baseMaps = {};
         var overlaysTree = [
-            {label: 'Preu<br /><table><tr><td style="text-align: center;"><img src="legend/Preu_3_10.png" /></td><td>1</td></tr><tr><td style="text-align: center;"><img src="legend/Preu_3_21.png" /></td><td>2</td></tr><tr><td style="text-align: center;"><img src="legend/Preu_3_32.png" /></td><td>3<</td></tr></table>', layer: layer_Preu_3},
+            {label: 'Preu<br /><table><tr><td style="text-align: center;"><img src="legend/Preu_3_031033EURKG0.png" /></td><td>0,31 - 0,33  EUR/KG</td></tr><tr><td style="text-align: center;"><img src="legend/Preu_3_034036EURKG1.png" /></td><td>0,34 - 0,36 EUR/KG</td></tr><tr><td style="text-align: center;"><img src="legend/Preu_3_036038EURKG2.png" /></td><td>0,36 - 0,38 EUR/KG</td></tr></table>', layer: layer_Preu_3},
             {label: '<img src="legend/MunicipisdelBaixEbre_2.png" /> Municipis del Baix Ebre', layer: layer_MunicipisdelBaixEbre_2},
             {label: '<img src="legend/BaixEbre_1.png" /> Baix Ebre', layer: layer_BaixEbre_1},
             {label: "Mapa de fons", layer: layer_Mapadefons_0},]
